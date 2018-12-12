@@ -1,6 +1,6 @@
 {
   "name": "egg-xprom",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "prometheus插件",
   "eggPlugin": {
     "name": "xprom"
@@ -46,12 +46,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eggjs/egg-xprom.git"
+    "url": "git+https://github.com/EcarxCloudPlatform/egg-xprom.git"
   },
   "bugs": {
-    "url": "https://github.com/eggjs/egg/issues"
+    "url": "https://github.com/EcarxCloudPlatform/egg/issues"
   },
-  "homepage": "https://github.com/eggjs/egg-xprom#readme",
+  "homepage": "https://github.com/EcarxCloudPlatform/egg-xprom#readme",
   "author": "flandreYi",
   "license": "MIT"
 }
