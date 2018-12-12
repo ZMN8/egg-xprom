@@ -13,7 +13,7 @@ module.exports = agent => {
       res.end('not found');
     }
   });
-  server.listen(agent.config.xprom.port || 3000);
+  server.listen(agent.config.xprom.port || 9145);
   collectDefaultMetrics({
     timeout: 5000, register,
   });
@@ -22,34 +22,34 @@ module.exports = agent => {
   const ApiResponseTime = new Summary({
     name: 'http_response_time',
     help: 'http_response_time',
-    labelNames: [ 'method', 'path', 'status', 'consume' ],
+    labelNames: ['method', 'path', 'status'],
   });
   const ApiRequestRate = new Counter({
     name: 'http_request_rate',
     help: 'http_request_rate',
-    labelNames: [ 'method', 'path', 'status', 'consume' ],
+    labelNames: ['method', 'path', 'status'],
   });
 
   // curl other api monitor
   const OtherApiResponseSuccessTime = new Summary({
     name: 'http_other_response_success_time',
     help: 'http_other_response_success_time',
-    labelNames: [ 'method', 'path', 'status', 'consume' ],
+    labelNames: ['method', 'path', 'status'],
   });
   const OtherApiRequestSuccessRate = new Counter({
     name: 'http_other_response_success_rate',
     help: 'http_other_response_success_rate',
-    labelNames: [ 'method', 'path', 'status', 'consume' ],
+    labelNames: ['method', 'path', 'status'],
   });
   const OtherApiResponseFailTime = new Summary({
     name: 'http_other_response_fail_time',
     help: 'http_other_response_fail_time',
-    labelNames: [ 'method', 'path', 'status', 'consume' ],
+    labelNames: ['method', 'path', 'status'],
   });
   const OtherApiRequestFailRate = new Counter({
     name: 'http_other_response_fail_rate',
     help: 'http_other_response_fail_rate',
-    labelNames: [ 'method', 'path', 'status', 'consume' ],
+    labelNames: ['method', 'path', 'status'],
   });
 
   agent.messenger.on('promethus-event', data => {

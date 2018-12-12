@@ -35,7 +35,7 @@ exports.xprom = {
 ```js
 // {app_root}/config/config.default.js
 exports.xprom = {
-  port:3000 // default 3000
+  port:9145 // default 9145
 };
 ```
 
