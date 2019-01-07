@@ -14,15 +14,15 @@ module.exports = app => {
       const status = result.res.statusCode;
       const consume = (Date.now() - startTs) / 1000;
       app.messenger.sendToAgent('promethus-event', {
-        type: 'http_request_other_success',
+        type: 'http_request_other',
         data: { path, method, status, consume },
       });
       return result;
     } catch (error) {
       const consume = (Date.now() - startTs) / 1000;
       app.messenger.sendToAgent('promethus-event', {
-        type: 'http_request_other_fail',
-        data: { path, method, consume, status: -1 },
+        type: 'http_request_other',
+        data: { path, method, consume, status: 500 },
       });
       throw error;
     }

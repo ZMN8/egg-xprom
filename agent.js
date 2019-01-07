@@ -1,76 +1,89 @@
 'use strict';
 
-const { Counter, Summary, register, collectDefaultMetrics } = require('prom-client');
+const { Counter, Gauge, Histogram, register } = require('prom-client');
 const http = require('http');
 
 module.exports = agent => {
-  const server = http.createServer((req, res) => {
-    if (req.url === '/metrics') {
-      res.setHeader('Content-Type', register.contentType);
-      res.end(register.metrics());
-    } else {
-      res.writeHead(404, { 'Content-Type': 'text/plain' });
-      res.end('not found');
-    }
-  });
-  server.listen(agent.config.xprom.port || 9145);
-  collectDefaultMetrics({
-    timeout: 5000, register,
-  });
+  try {
+    const httpServer = http.createServer((req, res) => {
+      if (req.url === '/ops/monitor') {
+        res.setHeader('Content-Type', register.contentType);
+        res.end(register.metrics());
+      } else {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('not found');
+      }
+    });
+    httpServer.listen(agent.config.xprom.port || 9999);
+    const server = agent.config.xprom.name || agent.config.name;
 
-  // egg api monitor
-  const ApiResponseTime = new Summary({
-    name: 'http_response_time',
-    help: 'http_response_time',
-    labelNames: ['method', 'path', 'status'],
-  });
-  const ApiRequestRate = new Counter({
-    name: 'http_request_rate',
-    help: 'http_request_rate',
-    labelNames: ['method', 'path', 'status'],
-  });
+    // 接口总访问量（次数）
+    const http_request_total = new Counter({
+      name: 'http_request_total',
+      help: 'http_request_total',
+      labelNames: ['server', 'method', 'handler'],
+    });
+    // 接口响应请求时长(秒)
+    const http_request_duration_seconds = new Gauge({
+      name: 'http_request_duration_seconds',
+      help: 'http_request_duration_seconds',
+      labelNames: ['server', 'method', 'handler'],
+    });
+    // 接口响应时间统计
+    const http_request_duration_histogram = new Histogram({
+      name: 'http_request_duration_histogram',
+      help: 'http_request_duration_histogram',
+      labelNames: ['server', 'method', 'handler'],
+      buckets: [0.1, 0.5, 1, 5],
+    });
+    // 接口响应值分布值
+    const http_request_code_histogram = new Histogram({
+      name: 'http_request_code_histogram',
+      help: 'http_request_code_histogram',
+      labelNames: ['server', 'method', 'handler'],
+      buckets: [200, 300, 400, 500],
+    });
+    // 调用依赖服务响应时长(秒)
+    const http_depend_service_reponses_seconds = new Gauge({
+      name: 'http_depend_service_reponses_seconds',
+      help: 'http_depend_service_reponses_seconds',
+      labelNames: ['server', 'target', 'method'],
+    });
+    // 调用依赖服务的响应时间统计
+    const http_depend_service_reponses_histogram = new Histogram({
+      name: 'http_depend_service_reponses_histogram',
+      help: 'http_depend_service_reponses_histogram',
+      labelNames: ['server', 'target', 'method'],
+      buckets: [0.1, 0.5, 1, 5],
+    });
+    // 调用依赖服务响应状态统计
+    const http_depend_service_status_histogram = new Histogram({
+      name: 'http_depend_service_status_histogram',
+      help: 'http_depend_service_status_histogram',
+      labelNames: ['server', 'target', 'method'],
+      buckets: [200, 300, 400, 500],
+    });
 
-  // curl other api monitor
-  const OtherApiResponseSuccessTime = new Summary({
-    name: 'http_other_response_success_time',
-    help: 'http_other_response_success_time',
-    labelNames: ['method', 'path', 'status'],
-  });
-  const OtherApiRequestSuccessRate = new Counter({
-    name: 'http_other_response_success_rate',
-    help: 'http_other_response_success_rate',
-    labelNames: ['method', 'path', 'status'],
-  });
-  const OtherApiResponseFailTime = new Summary({
-    name: 'http_other_response_fail_time',
-    help: 'http_other_response_fail_time',
-    labelNames: ['method', 'path', 'status'],
-  });
-  const OtherApiRequestFailRate = new Counter({
-    name: 'http_other_response_fail_rate',
-    help: 'http_other_response_fail_rate',
-    labelNames: ['method', 'path', 'status'],
-  });
+    agent.messenger.on('promethus-event', data => {
+      const { method, path: handler, consume, status } = data.data;
+      switch (data.type) {
+        case 'http_request_other':
+          http_depend_service_reponses_seconds.set({ server, method, target: handler }, consume);
+          http_depend_service_reponses_histogram.observe({ server, method, target: handler }, consume);
+          http_depend_service_status_histogram.observe({ server, method, target: handler }, status);
+          break;
+        case 'http_request':
+          http_request_total.inc({ server, method, handler }, 1);
+          http_request_duration_seconds.set({ server, method, handler }, consume);
+          http_request_duration_histogram.observe({ server, method, handler }, consume);
+          http_request_code_histogram.observe({ server, method, handler }, status);
+          break;
+        default:
+          break;
+      }
 
-  agent.messenger.on('promethus-event', data => {
-    const { method, path, consume, status } = data.data;
-    switch (data.type) {
-      case 'http_request_other_success':
-        OtherApiRequestSuccessRate.inc({ method, path, status }, 1);
-        OtherApiResponseSuccessTime.observe({ method, path, status }, consume);
-        break;
-      case 'http_request_other_fail':
-        OtherApiRequestFailRate.inc({ method, path, status }, 1);
-        OtherApiResponseFailTime.observe({ method, path, status }, consume);
-        break;
-      case 'http_request':
-        ApiRequestRate.inc({ method, path, status }, 1);
-        ApiResponseTime.observe({ method, path, status }, consume);
-        break;
-      default:
-        break;
-    }
-
-  });
-
+    });
+  } catch (error) {
+    console.log(error);
+  }
 };

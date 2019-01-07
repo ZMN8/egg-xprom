@@ -35,7 +35,8 @@ exports.xprom = {
 ```js
 // {app_root}/config/config.default.js
 exports.xprom = {
-  port:9145 // default 9145 ;Docker need EXPOSE 9145
+  port:9999 // default 9999 ;Docker need EXPOSE 9999
+  name:'xprom-test' // default project name
 };
 ```
 
