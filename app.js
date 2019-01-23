@@ -9,20 +9,22 @@ module.exports = app => {
       startTs = Date.now();
     let method = 'GET';
     if (args[1] && args[1].method) method = args[1].method;
+    let promServerName;
+    if (args[1] && args[1].promServerName) promServerName = args[1].promServerName;
     try {
       const result = await app[CURL](...args);
       const status = result.res.statusCode;
       const consume = (Date.now() - startTs) / 1000;
       app.messenger.sendToAgent('promethus-event', {
         type: 'http_request_other',
-        data: { path, method, status, consume },
+        data: { path, method, status, consume, promServerName },
       });
       return result;
     } catch (error) {
       const consume = (Date.now() - startTs) / 1000;
       app.messenger.sendToAgent('promethus-event', {
         type: 'http_request_other',
-        data: { path, method, consume, status: 500 },
+        data: { path, method, consume, status: 500, promServerName },
       });
       throw error;
     }

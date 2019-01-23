@@ -42,9 +42,22 @@ exports.xprom = {
 
 see [config/config.default.js](config/config.default.js) for more detail.
 
-## Example
+## Other
 
-<!-- example here -->
+plugin will upload curl request monitor data.
+
+if url is <http://baidu.com>,monitor targetServer is **baidu.com**;
+
+if url is <http://message-platform:10000>,monitor targetServer is **message-platform**;
+
+if url is <http://api.xc22hanger.ccn/device-platform/ecarx_ca22r/msisdn/2>,monitor targetServer is **api.xc22hanger.ccn**
+
+if you want your custom targetServer,you can add field ***promServerName***
+
+example:
+```js
+await this.app.curl('http://baidu.com', { method: 'GET', promServerName: 'myCustomName' });
+```
 
 ## Questions & Suggestions
 
@@ -53,3 +66,7 @@ Please open an issue [here](https://github.com/eggjs/egg/issues).
 ## License
 
 [MIT](LICENSE)
+
+
+
+
