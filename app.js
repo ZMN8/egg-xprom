@@ -4,7 +4,7 @@ module.exports = app => {
 
   const CURL = Symbol('curl');
   app[CURL] = app.curl;
-  app.curl = async function(...args) {
+  app.curl = async function (...args) {
     const path = args[0],
       startTs = Date.now();
     let method = 'GET';
@@ -31,9 +31,10 @@ module.exports = app => {
   };
 
   app.on('response', ctx => {
-    const { method, path, status } = ctx;
+    const { method, status } = ctx;
+    const path = ctx.routerPath || 'notmatch';
     const consume = (Date.now() - ctx.starttime) / 1000;
-    const filterList = [ '/favicon.ico', '/robots.txt' ];
+    const filterList = ['/favicon.ico', '/robots.txt'];
 
     if (!filterList.includes(path)) {
       app.messenger.sendToAgent('promethus-event', {
