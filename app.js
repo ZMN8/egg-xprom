@@ -49,12 +49,13 @@ module.exports = app => {
   if (app.model){
     const LOG = Symbol('log')
     app.Sequelize[LOG] = app.Sequelize.prototype.log;
+    // 重写 Sequelize.prototype.log 函数
     app.Sequelize.prototype.log = function () {
       app.Sequelize[LOG].apply(app.model, arguments)
       const args = Array.prototype.slice.call(arguments);
       const { tableNames, model, type } = args[2];
       if (tableNames) {
-        const duration = args[1];
+        const duration = isNaN(args[1]) ? args[1] : args[1]/1000;// 毫秒转化成秒
         app.messenger.sendToAgent('promethus-event', {
           type: 'database',
           data: { table: model.name, type, duration },
