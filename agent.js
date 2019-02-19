@@ -63,6 +63,28 @@ module.exports = agent => {
       labelNames: [ 'server', 'target', 'method' ],
       buckets: [ 200, 300, 400, 500 ],
     });
+    /************ database ****************/
+    // 服务调用sql情况汇总（次数）
+    const service_database_exec_total = new Counter({
+      name: 'service_database_exec_total',
+      help: 'service_database_exec_total',
+      labelNames: ['server', 'database', 'type'],
+    });
+
+    // 服务调用sql时长(秒)
+    const service_database_exec_duration_seconds = new Gauge({
+      name: 'service_database_exec_duration_seconds',
+      help: 'service_database_exec_duration_seconds',
+      labelNames: ['server', 'database', 'table', 'type'],
+    });
+
+    // 服务执行sql所用时间统计
+    const service_database_duration_histogram = new Histogram({
+      name: 'service_database_duration_histogram',
+      help: 'service_database_duration_histogram',
+      labelNames: ['server', 'database', 'table', 'type'],
+      buckets: [0.1, 0.5, 1, 5],
+    });
 
     agent.messenger.on('promethus-event', data => {
       const { method, path: handler, consume, status, promServerName } = data.data;
@@ -89,6 +111,12 @@ module.exports = agent => {
           http_request_duration_seconds.set({ server, method, handler }, consume);
           http_request_duration_histogram.observe({ server, method, handler }, consume);
           http_request_code_histogram.observe({ server, method, handler }, status);
+          break;
+        case 'database':
+          const { type, duration, table } = data.data;
+          service_database_exec_total.inc({ server, database, type }, 1);
+          service_database_exec_duration_seconds.set({ server, database, type, table }, duration);
+          service_database_duration_histogram.observe({ server, database, type, table }, duration);
           break;
         default:
           break;
