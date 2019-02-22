@@ -1,6 +1,6 @@
 {
   "name": "egg-xprom",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "prometheus插件",
   "eggPlugin": {
     "name": "xprom"
