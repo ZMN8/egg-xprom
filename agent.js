@@ -16,6 +16,7 @@ module.exports = agent => {
     });
     httpServer.listen(agent.config.xprom.port || 9999);
     const server = agent.config.xprom.name || agent.config.name;
+    const database = agent.config.sequelize ?  agent.config.sequelize.database : null;
 
     // 接口总访问量（次数）
     const http_request_total = new Counter({
