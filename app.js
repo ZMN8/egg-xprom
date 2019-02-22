@@ -35,7 +35,9 @@ module.exports = app => {
     const path = ctx.routerPath || 'notmatch';
     const consume = (Date.now() - ctx.starttime) / 1000;
     const filterList = ['/favicon.ico', '/robots.txt'];
-
+    if (consume > 0.5) { // TODO CONFIG
+      app.logger.info('[xprom]', '耗时较大:', consume, 'api:', ctx.path);
+    }
     if (!filterList.includes(path)) {
       app.messenger.sendToAgent('promethus-event', {
         type: 'http_request',
@@ -46,7 +48,7 @@ module.exports = app => {
   });
 
   // 确保 sequelize 实例已存在
-  if (app.model){
+  if (app.model) {
     const LOG = Symbol('log')
     app.Sequelize[LOG] = app.Sequelize.prototype.log;
     // 重写 Sequelize.prototype.log 函数
@@ -55,7 +57,10 @@ module.exports = app => {
       const args = Array.prototype.slice.call(arguments);
       const { tableNames, model, type } = args[2];
       if (tableNames) {
-        const duration = isNaN(args[1]) ? args[1] : args[1]/1000;// 毫秒转化成秒
+        const duration = isNaN(args[1]) ? args[1] : args[1] / 1000;// 毫秒转化成秒
+        if (duration > 0.5) { // TODO CONFIG
+          app.logger.info('[xprom]', '耗时较大:', duration, 'sql:', args[0]);
+        }
         app.messenger.sendToAgent('promethus-event', {
           type: 'database',
           data: { table: model.name, type, duration },
