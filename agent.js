@@ -16,7 +16,7 @@ module.exports = agent => {
     });
     httpServer.listen(agent.config.xprom.port || 9999);
     const server = agent.config.xprom.name || agent.config.name;
-    const database = agent.config.sequelize ?  agent.config.sequelize.database : null;
+    const database = agent.config.sequelize ? agent.config.sequelize.database : null;
 
     // 接口总访问量（次数）
     const http_request_total = new Counter({
@@ -64,27 +64,27 @@ module.exports = agent => {
       labelNames: [ 'server', 'target', 'method' ],
       buckets: [ 200, 300, 400, 500 ],
     });
-    /************ database ****************/
+    /** ********** database ****************/
     // 服务调用sql情况汇总（次数）
     const service_database_exec_total = new Counter({
       name: 'service_database_exec_total',
       help: 'service_database_exec_total',
-      labelNames: ['server', 'database', 'type'],
+      labelNames: [ 'server', 'database', 'type' ],
     });
 
     // 服务调用sql时长(秒)
     const service_database_exec_duration_seconds = new Gauge({
       name: 'service_database_exec_duration_seconds',
       help: 'service_database_exec_duration_seconds',
-      labelNames: ['server', 'database', 'table', 'type'],
+      labelNames: [ 'server', 'database', 'table', 'type' ],
     });
 
     // 服务执行sql所用时间统计
     const service_database_duration_histogram = new Histogram({
       name: 'service_database_duration_histogram',
       help: 'service_database_duration_histogram',
-      labelNames: ['server', 'database', 'table', 'type'],
-      buckets: [0.1, 0.5, 1, 5],
+      labelNames: [ 'server', 'database', 'table', 'type' ],
+      buckets: [ 0.1, 0.5, 1, 5 ],
     });
 
     agent.messenger.on('promethus-event', data => {
